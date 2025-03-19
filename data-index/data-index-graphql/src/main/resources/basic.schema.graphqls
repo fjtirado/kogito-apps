@@ -69,7 +69,6 @@ input ProcessDefinitionArgument {
     serviceUrl: StringArgument
     description: StringArgument
     type: StringArgument
-    metadata: JSON
 }
 
 type ProcessInstance {
@@ -107,6 +106,7 @@ type ProcessInstance {
 
 type ProcessInstanceError {
     nodeDefinitionId: String!
+    nodeInstanceId: String
     message: String
 }
 
@@ -143,6 +143,8 @@ type NodeInstance {
     definitionId: String!
     nodeId: String!
     slaDueDate: DateTime
+    retrigger: Boolean
+    errorMessage: String
 }
 
 enum MilestoneStatus {
@@ -183,7 +185,6 @@ input ProcessInstanceArgument {
     id: IdArgument
     processId: StringArgument
     processName: StringArgument
-    variables: JSON
     parentProcessInstanceId: IdArgument
     rootProcessInstanceId: IdArgument
     rootProcessId: StringArgument
@@ -209,6 +210,9 @@ input ProcessInstanceErrorArgument {
 }
 
 input NodeInstanceArgument {
+    and: [NodeInstanceArgument!]
+    or: [NodeInstanceArgument!]
+    not: NodeInstanceArgument
     id: IdArgument
     name: StringArgument
     definitionId: StringArgument
@@ -216,6 +220,8 @@ input NodeInstanceArgument {
     type: StringArgument
     enter: DateArgument
     exit: DateArgument
+    errorMessage: StringArgument
+    retrigger: BooleanArgument
 }
 
 input MilestoneStatusArgument {

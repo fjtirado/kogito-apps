@@ -16,19 +16,43 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.kie.kogito.index.jdbc.query;
 
-import org.kie.kogito.index.jpa.query.AbstractProcessInstanceEntityQueryIT;
+package org.kie.kogito.index.addon.api.models;
 
-import io.quarkus.test.TestTransaction;
-import io.quarkus.test.junit.QuarkusTest;
+import org.kie.kogito.Model;
 
-@QuarkusTest
-@TestTransaction
-class H2ProcessInstanceEntityQueryIT extends AbstractProcessInstanceEntityQueryIT {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    @Override
-    protected Boolean isDateTimeAsLong() {
-        return false;
+public class TestModel implements Model {
+
+    @JsonProperty(value = "name")
+    String name;
+    @JsonProperty(value = "age")
+    Integer age;
+    @JsonProperty(value = "adult")
+    Boolean adult;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public Boolean getAdult() {
+        return adult;
+    }
+
+    public void setAdult(Boolean adult) {
+        this.adult = adult;
     }
 }

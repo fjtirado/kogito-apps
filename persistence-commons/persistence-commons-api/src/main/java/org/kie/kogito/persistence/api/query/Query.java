@@ -31,4 +31,8 @@ public interface Query<T> {
     Query<T> sort(List<AttributeSort> sortBy);
 
     List<T> execute();
+
+    default long count() {
+        throw new UnsupportedOperationException("Count is an optional operation not supported by the underlying datastore");
+    }
 }

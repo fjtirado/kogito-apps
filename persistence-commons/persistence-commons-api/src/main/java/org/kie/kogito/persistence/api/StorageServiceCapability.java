@@ -16,19 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.kie.kogito.index.jdbc.query;
+package org.kie.kogito.persistence.api;
 
-import org.kie.kogito.index.jpa.query.AbstractProcessInstanceEntityQueryIT;
-
-import io.quarkus.test.TestTransaction;
-import io.quarkus.test.junit.QuarkusTest;
-
-@QuarkusTest
-@TestTransaction
-class H2ProcessInstanceEntityQueryIT extends AbstractProcessInstanceEntityQueryIT {
-
-    @Override
-    protected Boolean isDateTimeAsLong() {
-        return false;
-    }
+public enum StorageServiceCapability {
+    COUNT,
+    JSON_QUERY
 }

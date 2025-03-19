@@ -16,19 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.kie.kogito.index.jdbc.query;
 
-import org.kie.kogito.index.jpa.query.AbstractProcessInstanceEntityQueryIT;
 
-import io.quarkus.test.TestTransaction;
-import io.quarkus.test.junit.QuarkusTest;
-
-@QuarkusTest
-@TestTransaction
-class H2ProcessInstanceEntityQueryIT extends AbstractProcessInstanceEntityQueryIT {
-
-    @Override
-    protected Boolean isDateTimeAsLong() {
-        return false;
-    }
-}
+ALTER TABLE Process_Instance_Variable_Log ALTER COLUMN variable_value TYPE TEXT;
+ALTER TABLE Task_Instance_Variable_Log ALTER COLUMN variable_value  TYPE TEXT;

@@ -17,14 +17,6 @@
  * under the License.
  */
 
-package org.kie.kogito.index.jdbc;
-
-import io.quarkus.test.junit.QuarkusTestProfile;
-
-public class H2QuarkusTestProfile implements QuarkusTestProfile {
-
-    @Override
-    public String getConfigProfile() {
-        return "test-h2";
-    }
-}
+ALTER TABLE nodes ADD COLUMN retrigger boolean default false;
+ALTER TABLE nodes ADD COLUMN error_message varchar(4000);
+ALTER TABLE processes ADD COLUMN node_instance_id varchar(255);

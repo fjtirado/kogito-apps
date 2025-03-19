@@ -20,6 +20,7 @@ package org.kie.kogito.index.jpa.storage;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,7 @@ import org.kie.kogito.index.json.JsonUtils;
 import org.kie.kogito.index.model.MilestoneStatus;
 import org.kie.kogito.index.model.ProcessInstance;
 import org.kie.kogito.index.storage.ProcessInstanceStorage;
+import org.kie.kogito.persistence.api.StorageServiceCapability;
 
 import io.quarkus.arc.DefaultBean;
 
@@ -145,7 +147,9 @@ public class ProcessInstanceEntityStorage extends AbstractJPAStorageFetcher<Stri
         }
         errorEntity.setMessage(error.getErrorMessage());
         errorEntity.setNodeDefinitionId(error.getNodeDefinitionId());
+        errorEntity.setNodeInstanceId(error.getNodeInstanceId());
         pi.setState(CommonUtils.ERROR_STATE);
+        pi.getNodes().stream().filter(n -> n.getId().equals(error.getNodeInstanceId())).findAny().ifPresent(n -> n.setErrorMessage(error.getErrorMessage()));
     }
 
     private void indexNode(ProcessInstanceEntity pi, ProcessInstanceNodeEventBody data) {
@@ -184,6 +188,9 @@ public class ProcessInstanceEntityStorage extends AbstractJPAStorageFetcher<Stri
         nodeInstance.setName(body.getNodeName());
         nodeInstance.setType(body.getNodeType());
         nodeInstance.setSlaDueDate(toZonedDateTime(body.getSlaDueDate()));
+        if (body.isRetrigger() != null) {
+            nodeInstance.setRetrigger(body.isRetrigger());
+        }
         ZonedDateTime eventDate = toZonedDateTime(body.getEventDate());
         switch (body.getEventType()) {
             case EVENT_TYPE_ENTER:
@@ -218,6 +225,8 @@ public class ProcessInstanceEntityStorage extends AbstractJPAStorageFetcher<Stri
             pi.setCreatedBy(data.getEventUser());
         } else if (data.getEventType() == ProcessInstanceStateEventBody.EVENT_TYPE_ENDED) {
             pi.setEnd(toZonedDateTime(data.getEventDate()));
+        } else if (data.getEventType() == ProcessInstanceStateEventBody.EVENT_TYPE_RETRIGGERED) {
+            pi.setError(null);
         }
         pi.setBusinessKey(data.getBusinessKey());
         pi.setUpdatedBy(data.getEventUser());
@@ -233,5 +242,9 @@ public class ProcessInstanceEntityStorage extends AbstractJPAStorageFetcher<Stri
 
     private void indexSla(ProcessInstanceEntity orInit, ProcessInstanceSLAEventBody data) {
         // SLA does nothing for now
+    }
+
+    public Set<StorageServiceCapability> capabilities() {
+        return EnumSet.of(StorageServiceCapability.COUNT);
     }
 }
