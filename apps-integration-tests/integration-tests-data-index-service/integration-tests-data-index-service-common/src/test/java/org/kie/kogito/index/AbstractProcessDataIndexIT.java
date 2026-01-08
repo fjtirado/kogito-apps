@@ -51,12 +51,13 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public abstract class AbstractProcessDataIndexIT {
 
-    private static Duration TIMEOUT = Duration.ofSeconds(30);
+    protected static Duration TIMEOUT = Duration.ofSeconds(30);
 
     static {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
@@ -164,6 +165,20 @@ public abstract class AbstractProcessDataIndexIT {
                         .body("data.ProcessInstances[0].processId", is("approvals"))
                         .body("data.ProcessInstances[0].state", is("ACTIVE"))
                         .body("data.ProcessInstances[0].createdBy", nullValue()));
+
+        await()
+                .atMost(TIMEOUT)
+                .untilAsserted(() -> given().spec(dataIndexSpec()).contentType(ContentType.JSON)
+                        .body("{ \"query\" : \"{ProcessInstances(where:{slaDueDate:{isNull: false}})" +
+                                "{ id, processId, state, createdBy, slaDueDate} }\" }")
+                        .when().post("/graphql")
+                        .then().statusCode(200)
+                        .body("data.ProcessInstances.size()", is(1))
+                        .body("data.ProcessInstances[0].id", is(pId))
+                        .body("data.ProcessInstances[0].processId", is("approvals"))
+                        .body("data.ProcessInstances[0].state", is("ACTIVE"))
+                        .body("data.ProcessInstances[0].createdBy", nullValue())
+                        .body("data.ProcessInstances[0].slaDueDate", notNullValue()));
 
         await()
                 .atMost(TIMEOUT)
@@ -701,13 +716,15 @@ public abstract class AbstractProcessDataIndexIT {
 
     protected ValidatableResponse getProcessInstanceById(String processInstanceId, String state) {
         return given().spec(dataIndexSpec()).contentType(ContentType.JSON)
-                .body("{ \"query\" : \"{ProcessInstances(where: {  id: {  equal : \\\"" + processInstanceId + "\\\"}}){ id, processId, state } }\" }")
+                .body("{ \"query\" : \"{ProcessInstances(where: {  id: {  equal : \\\"" + processInstanceId + "\\\"}}){ id, processId, state, executionSummary } }\" }")
                 .when().post("/graphql")
                 .then().statusCode(200)
                 .body("data.ProcessInstances.size()", is(1))
                 .body("data.ProcessInstances[0].id", is(processInstanceId))
                 .body("data.ProcessInstances[0].processId", is("approvals"))
-                .body("data.ProcessInstances[0].state", is(state));
+                .body("data.ProcessInstances[0].state", is(state))
+                .body("data.ProcessInstances[0].executionSummary", is(notNullValue()))
+                .body("data.ProcessInstances[0].executionSummary.size()", greaterThan(0));
     }
 
     private void checkExpectedCreatedItemData(String creationData, Map<String, String> resultMap) throws IOException {

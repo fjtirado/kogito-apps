@@ -20,10 +20,10 @@ package org.kie.kogito.index.jpa.storage;
 
 import java.util.Set;
 
-import org.kie.kogito.index.model.Job;
 import org.kie.kogito.index.model.ProcessDefinition;
 import org.kie.kogito.index.model.ProcessDefinitionKey;
 import org.kie.kogito.index.storage.DataIndexStorageService;
+import org.kie.kogito.index.storage.JobInstanceStorage;
 import org.kie.kogito.index.storage.ProcessInstanceStorage;
 import org.kie.kogito.index.storage.UserTaskInstanceStorage;
 import org.kie.kogito.persistence.api.Storage;
@@ -37,17 +37,22 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class JPADataIndexStorageService implements DataIndexStorageService {
 
-    @Inject
     ProcessDefinitionEntityStorage definitionStorage;
 
-    @Inject
     JobEntityStorage jobsStorage;
 
-    @Inject
     ProcessInstanceStorage processInstanceStorage;
 
-    @Inject
     UserTaskInstanceStorage userTaskInstanceStorage;
+
+    @Inject
+    public JPADataIndexStorageService(ProcessDefinitionEntityStorage definitionStorage, JobEntityStorage jobsStorage, ProcessInstanceStorage processInstanceStorage,
+            UserTaskInstanceStorage userTaskInstanceStorage) {
+        this.definitionStorage = definitionStorage;
+        this.jobsStorage = jobsStorage;
+        this.processInstanceStorage = processInstanceStorage;
+        this.userTaskInstanceStorage = userTaskInstanceStorage;
+    }
 
     @Override
     public Storage<ProcessDefinitionKey, ProcessDefinition> getProcessDefinitionStorage() {
@@ -65,7 +70,7 @@ public class JPADataIndexStorageService implements DataIndexStorageService {
     }
 
     @Override
-    public Storage<String, Job> getJobsStorage() {
+    public JobInstanceStorage getJobsStorage() {
         return jobsStorage;
     }
 

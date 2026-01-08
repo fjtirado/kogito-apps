@@ -36,6 +36,7 @@ import org.kie.kogito.event.process.ProcessDefinitionDataEvent;
 import org.kie.kogito.event.process.ProcessInstanceDataEvent;
 import org.kie.kogito.event.process.ProcessInstanceErrorDataEvent;
 import org.kie.kogito.event.process.ProcessInstanceStateDataEvent;
+import org.kie.kogito.event.usertask.UserTaskInstanceDataEvent;
 import org.kie.kogito.event.usertask.UserTaskInstanceStateDataEvent;
 import org.kie.kogito.index.event.KogitoJobCloudEvent;
 import org.kie.kogito.index.model.ProcessInstanceState;
@@ -94,7 +95,7 @@ import static org.kie.kogito.index.test.TestUtils.getProcessCloudEvent;
 import static org.kie.kogito.index.test.TestUtils.getProcessDefinitionDataEvent;
 import static org.kie.kogito.index.test.TestUtils.getUserTaskCloudEvent;
 
-public abstract class AbstractIndexingServiceIT extends AbstractIndexingIT {
+public abstract class AbstractIndexingServiceIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIndexingServiceIT.class);
     public static final String CURRENT_USER = "currentUser";
@@ -230,6 +231,10 @@ public abstract class AbstractIndexingServiceIT extends AbstractIndexingIT {
                         .body("data.ProcessInstances[49].id", is(pIds.get(49))));
     }
 
+    protected abstract void indexProcessCloudEvent(ProcessInstanceDataEvent<?> startEvent);
+
+    protected abstract void indexProcessCloudEvent(ProcessDefinitionDataEvent definitionDataEvent);
+
     @Test
     void testUserTaskInstancePagination() {
         String processId = "deals";
@@ -287,6 +292,8 @@ public abstract class AbstractIndexingServiceIT extends AbstractIndexingIT {
                         .body("data.UserTaskInstances[0].id", is(taskIds.get(0)))
                         .body("data.UserTaskInstances[99].id", is(taskIds.get(99))));
     }
+
+    protected abstract void indexUserTaskCloudEvent(UserTaskInstanceDataEvent<?> event);
 
     @Test
     void testConcurrentProcessInstanceIndex() throws Exception {
@@ -398,8 +405,10 @@ public abstract class AbstractIndexingServiceIT extends AbstractIndexingIT {
         String state = "InProgress";
         String processId = "deals";
         String processInstanceId = UUID.randomUUID().toString();
+        String rootProcessId = "hiring";
+        String rootProcessInstanceId = UUID.randomUUID().toString();
 
-        UserTaskInstanceStateDataEvent event = getUserTaskCloudEvent(taskId, processId, processInstanceId, null, null, state);
+        UserTaskInstanceStateDataEvent event = getUserTaskCloudEvent(taskId, processId, processInstanceId, rootProcessInstanceId, rootProcessId, state);
         indexUserTaskCloudEvent(event);
 
         validateUserTaskInstance(getUserTaskInstanceById(taskId), event);
@@ -411,18 +420,18 @@ public abstract class AbstractIndexingServiceIT extends AbstractIndexingIT {
                 event);
 
         state = "Completed";
-        event = getUserTaskCloudEvent(taskId, processId, processInstanceId, null, null, state, "kogito", "Completed");
+        event = getUserTaskCloudEvent(taskId, processId, processInstanceId, rootProcessInstanceId, rootProcessId, state, "kogito", "Completed");
         indexUserTaskCloudEvent(event);
 
         validateUserTaskInstance(
                 getUserTaskInstanceByIdAndCompleted(taskId, formatDateTime(event.getData().getEventDate())), event);
 
-        event = getUserTaskCloudEvent(taskId, processId, processInstanceId, null, null, state, "admin", "Completed");
+        event = getUserTaskCloudEvent(taskId, processId, processInstanceId, rootProcessInstanceId, rootProcessId, state, "admin", "Completed");
         indexUserTaskCloudEvent(event);
 
         validateUserTaskInstance(getUserTaskInstanceByIdAndActualOwner(taskId, "admin"), event);
 
-        event = getUserTaskCloudEvent(taskId, processId, processInstanceId, null, null, state, null, "Completed");
+        event = getUserTaskCloudEvent(taskId, processId, processInstanceId, rootProcessInstanceId, rootProcessId, state, null, "Completed");
         LOGGER.info("event {}", event);
         indexUserTaskCloudEvent(event);
 
@@ -445,6 +454,8 @@ public abstract class AbstractIndexingServiceIT extends AbstractIndexingIT {
 
         validateJob(getJobById(jobId), event);
     }
+
+    protected abstract void indexJobCloudEvent(KogitoJobCloudEvent event);
 
     protected void validateJob(String query, KogitoJobCloudEvent event) {
         LOGGER.debug("GraphQL query: {}", query);
@@ -487,6 +498,8 @@ public abstract class AbstractIndexingServiceIT extends AbstractIndexingIT {
                         .body("data.UserTaskInstances[0].actualOwner", event.getData().getActualOwner() != null ? is(event.getData().getActualOwner()) : anything())
                         .body("data.UserTaskInstances[0].started", anything())
                         .body("data.UserTaskInstances[0].lastUpdate", anything())
+                        .body("data.UserTaskInstances[0].rootProcessId", is(event.getKogitoRootProcessId()))
+                        .body("data.UserTaskInstances[0].rootProcessInstanceId", is(event.getKogitoRootProcessInstanceId()))
                         .body("data.UserTaskInstances[0].endpoint",
                                 is(event.getSource().toString() + "/" + event.getData().getProcessInstanceId() + "/" + event.getData().getUserTaskName() + "/"
                                         + event.getData().getExternalReferenceId())));

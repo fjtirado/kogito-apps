@@ -28,6 +28,7 @@ import org.kie.kogito.index.jpa.model.MilestoneEntityId;
 import org.kie.kogito.index.jpa.model.NodeInstanceEntity;
 import org.kie.kogito.index.jpa.model.ProcessInstanceEntity;
 import org.kie.kogito.index.jpa.model.ProcessInstanceErrorEntity;
+import org.kie.kogito.index.model.CancelType;
 import org.kie.kogito.index.model.Milestone;
 import org.kie.kogito.index.model.NodeInstance;
 import org.kie.kogito.index.model.ProcessInstance;
@@ -35,8 +36,6 @@ import org.kie.kogito.index.model.ProcessInstanceError;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import jakarta.inject.Inject;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -48,13 +47,11 @@ public abstract class AbstractProcessInstanceEntityMapperIT {
     ProcessInstance processInstance = new ProcessInstance();
     ProcessInstanceEntity processInstanceEntity = new ProcessInstanceEntity();
 
-    @Inject
-    ProcessInstanceEntityMapper mapper;
-
     @BeforeEach
     void setup() {
         String nodeInstanceId = "testNodeInstanceId";
         String nodeInstanceName = "testNodeInstanceName";
+        CancelType cancelType = CancelType.ERROR;
         String nodeInstanceNodeId = "testNodeInstanceNodeId";
         String nodeInstanceType = "testNodeInstanceType";
         String nodeInstanceDefinitionId = "testNodeInstanceDefinitionId";
@@ -91,6 +88,7 @@ public abstract class AbstractProcessInstanceEntityMapperIT {
         nodeInstance.setType(nodeInstanceType);
         nodeInstance.setNodeId(nodeInstanceNodeId);
         nodeInstance.setName(nodeInstanceName);
+        nodeInstance.setCancelType(cancelType);
 
         ProcessInstanceError processInstanceError = new ProcessInstanceError();
         processInstanceError.setMessage(processInstanceErrorMessage);
@@ -131,6 +129,7 @@ public abstract class AbstractProcessInstanceEntityMapperIT {
         nodeInstanceEntity.setNodeId(nodeInstanceNodeId);
         nodeInstanceEntity.setType(nodeInstanceType);
         nodeInstanceEntity.setProcessInstance(processInstanceEntity);
+        nodeInstanceEntity.setCancelType(cancelType);
 
         ProcessInstanceErrorEntity processInstanceErrorEntity = new ProcessInstanceErrorEntity();
         processInstanceErrorEntity.setMessage(processInstanceErrorMessage);
@@ -169,13 +168,13 @@ public abstract class AbstractProcessInstanceEntityMapperIT {
 
     @Test
     void testMapToEntity() {
-        ProcessInstanceEntity result = mapper.mapToEntity(processInstance);
+        ProcessInstanceEntity result = ProcessInstanceEntityMapper.INSTANCE.mapToEntity(processInstance);
         assertThat(result).usingRecursiveComparison().ignoringFieldsMatchingRegexes(".*\\$\\$_hibernate_tracker").isEqualTo(processInstanceEntity);
     }
 
     @Test
     void testMapToModel() {
-        ProcessInstance result = mapper.mapToModel(processInstanceEntity);
+        ProcessInstance result = ProcessInstanceEntityMapper.INSTANCE.mapToModel(processInstanceEntity);
         assertThat(result).usingRecursiveComparison().isEqualTo(processInstance);
     }
 

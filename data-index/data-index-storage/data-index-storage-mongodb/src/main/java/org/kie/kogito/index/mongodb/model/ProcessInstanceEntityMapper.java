@@ -78,6 +78,8 @@ public class ProcessInstanceEntityMapper implements MongoEntityMapper<ProcessIns
         entity.setCreatedBy(instance.getCreatedBy());
         entity.setUpdatedBy(instance.getUpdatedBy());
         entity.setSlaDueDate(zonedDateTimeToInstant(instance.getSlaDueDate()));
+        entity.setCloudEventId(instance.getCloudEventId());
+        entity.setCloudEventSource(instance.getCloudEventSource());
         return entity;
     }
 
@@ -110,6 +112,8 @@ public class ProcessInstanceEntityMapper implements MongoEntityMapper<ProcessIns
         instance.setCreatedBy(entity.getCreatedBy());
         instance.setUpdatedBy(entity.getCreatedBy());
         instance.setSlaDueDate(instantToZonedDateTime(entity.getSlaDueDate()));
+        instance.setCloudEventId(entity.getCloudEventId());
+        instance.setCloudEventSource(entity.getCloudEventSource());
         return instance;
     }
 
@@ -151,6 +155,7 @@ public class ProcessInstanceEntityMapper implements MongoEntityMapper<ProcessIns
         instance.setSlaDueDate(instantToZonedDateTime(entity.getSlaDueDate()));
         instance.setRetrigger(entity.isRetrigger());
         instance.setErrorMessage(entity.getErrorMessage());
+        instance.setCancelType(entity.getCancelType());
         return instance;
     }
 
@@ -170,6 +175,7 @@ public class ProcessInstanceEntityMapper implements MongoEntityMapper<ProcessIns
         entity.setSlaDueDate(zonedDateTimeToInstant(instance.getSlaDueDate()));
         entity.setRetrigger(instance.isRetrigger());
         entity.setErrorMessage(instance.getErrorMessage());
+        entity.setCancelType(instance.getCancelType());
         return entity;
     }
 
